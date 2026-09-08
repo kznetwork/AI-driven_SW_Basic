@@ -1,0 +1,235 @@
+openapi: 3.1.0
+info:
+  title: LinkSnip API
+  version: 1.0.0
+  description: LinkSnip MVP의 단축 링크 생성, 조회, 삭제 API와 리다이렉트 계약
+servers:
+  - url: http://localhost:3000
+    description: 로컬 개발 서버
+tags:
+  - name: Links
+paths:
+  /api/v1/links:
+    post:
+      tags: [Links]
+      operationId: createLink
+      summary: 단축 링크 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+            examples:
+              basic:
+                value:
+                  url: https://example.com/articles/42?source=linksnip#summary
+      responses:
+        '201':
+          description: 생성됨
+          headers:
+            Location:
+              description: 생성된 링크 정보의 상대 경로
+              schema:
+                type: string
+                example: /api/v1/links/aB3xY9z
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/links/{code}:
+    parameters:
+      - $ref: '#/components/parameters/Code'
+    get:
+      tags: [Links]
+      operationId: getLink
+      summary: 단축 링크 정보 조회
+      responses:
+        '200':
+          description: 링크 정보
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Expired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Links]
+      operationId: deleteLink
+      summary: 단축 링크 삭제
+      responses:
+        '204':
+          description: 삭제됨
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /{code}:
+    parameters:
+      - $ref: '#/components/parameters/Code'
+    get:
+      operationId: redirectLink
+      summary: 원본 URL로 리다이렉트
+      responses:
+        '302':
+          description: 원본 URL로 이동
+          headers:
+            Location:
+              required: true
+              description: 저장된 원본 URL
+              schema:
+                type: string
+                format: uri
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Expired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  parameters:
+    Code:
+      name: code
+      in: path
+      required: true
+      description: 대소문자를 구분하는 7자리 Base62 코드
+      schema:
+        type: string
+        pattern: '^[0-9A-Za-z]{7}$'
+      example: aB3xY9z
+  schemas:
+    CreateLinkRequest:
+      type: object
+      additionalProperties: false
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          pattern: '^https?://'
+          example: https://example.com/articles/42?source=linksnip#summary
+        expiresAt:
+          type: string
+          format: date-time
+          description: 생성 시각보다 미래인 UTC 시각
+          example: '2026-09-01T00:00:00Z'
+    Link:
+      type: object
+      additionalProperties: false
+      required: [code, url, shortUrl, createdAt]
+      properties:
+        code:
+          type: string
+          pattern: '^[0-9A-Za-z]{7}$'
+          example: aB3xY9z
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          pattern: '^https?://'
+        shortUrl:
+          type: string
+          format: uri
+          example: https://lnk.example/aB3xY9z
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-08-16T12:34:56Z'
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+          description: 만료되지 않는 링크이면 null
+          example: null
+    Problem:
+      type: object
+      additionalProperties: true
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+    FieldError:
+      type: object
+      additionalProperties: false
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+  responses:
+    ValidationError:
+      description: 요청 유효성 검사 실패
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://linksnip.example/problems/validation-error
+            title: Invalid request
+            status: 400
+            detail: The request contains invalid fields.
+            instance: /api/v1/links
+            errors:
+              - field: url
+                message: Must be an absolute HTTP or HTTPS URL.
+    NotFound:
+      description: 링크를 찾을 수 없음
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://linksnip.example/problems/link-not-found
+            title: Link not found
+            status: 404
+            detail: No link exists for the supplied code.
+            instance: /api/v1/links/aB3xY9z
+    Expired:
+      description: 링크가 만료됨
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://linksnip.example/problems/link-expired
+            title: Link expired
+            status: 410
+            detail: The link has expired.
+            instance: /api/v1/links/aB3xY9z
+    InternalError:
+      description: 예상하지 못한 서버 오류
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: https://linksnip.example/problems/internal-error
+            title: Internal server error
+            status: 500
+            detail: An unexpected error occurred.
+            instance: /api/v1/links
