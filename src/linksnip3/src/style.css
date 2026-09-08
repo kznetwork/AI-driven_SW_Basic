@@ -1,0 +1,38 @@
+:root {
+  color: #172033;
+  font-family: system-ui, sans-serif;
+  background: #f4f7fb;
+}
+
+body {
+  display: grid;
+  min-height: 100vh;
+  margin: 0;
+  place-items: center;
+}
+
+main {
+  width: min(36rem, calc(100% - 3rem));
+}
+
+form div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input {
+  flex: 1;
+}
+
+input,
+button {
+  padding: 0.75rem;
+  font: inherit;
+}
+
+output {
+  display: block;
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
