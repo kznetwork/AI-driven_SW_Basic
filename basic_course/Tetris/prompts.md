@@ -363,7 +363,8 @@ $refactor-safe 로 기능 변화 없이 구조만 정리하고, 전후 점검 �
   Thumbs.db · .vscode/ 를 넣은 뒤 첫 커밋을 만든다.
 [main (root-commit) bf49373] feat: 테트리스 게임 초기 버전
  ✓ Created repository <사용자명>/tetris-codex on GitHub
- ✓ Pushed commits to https://github.com/<사용자명>/tetris-codex.git
+ ✓ Pushed commits to https://<img width="290" height="47" alt="image" src="https://github.sec.samsung.net/user-attachments/assets/21c1225c-d099-4674-93cf-5b1ebe7823e1" /><img width="290" height="47" alt="image" src="https://github.sec.samsung.net/user-attachments/assets/b07367be-db5a-476a-81b3-56be1418051c" />
+/<사용자명>/tetris-codex.git
 ```
 
 - 확인: 사전 준비 3가지 확인  ▸  프롬프트 8 실행 (설명을 읽고 승인)  ▸  gh repo create … --push 로 업로드
@@ -413,7 +414,7 @@ gh repo create tetris-codex --public --source=. --remote=origin --push
 
 # 방법 B — 웹에서 빈 저장소를 먼저 만든 뒤
 git branch -M main
-git remote add origin https://github.com/<사용자명>/tetris-codex.git
+git remote add origin https://github.sec.samsung.net/<사용자명>/tetris-codex.git
 git push -u origin main
 
 # 변경 후 재배포
