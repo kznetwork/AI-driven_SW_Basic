@@ -1,0 +1,45 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/session_start.py",
+            "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/session_start.ps1",
+            "timeout": 5,
+            "statusMessage": "교육용 프로젝트 규칙 확인"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/pre_tool_use_guard.py",
+            "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/pre_tool_use_guard.ps1",
+            "timeout": 5,
+            "statusMessage": "위험 명령 검사"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/post_tool_use.py",
+            "commandWindows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/post_tool_use.ps1",
+            "timeout": 5,
+            "statusMessage": "도구 실행 기록 남기기"
+          }
+        ]
+      }
+    ]
+  }
+}
